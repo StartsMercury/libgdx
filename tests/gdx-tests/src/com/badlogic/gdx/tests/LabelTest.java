@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,10 +26,14 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.List;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.tests.utils.GdxTest;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Justify;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
@@ -41,6 +45,8 @@ public class LabelTest extends GdxTest {
 	ShapeRenderer renderer;
 
 	float scale = 1;
+
+	Array<Label> labels = new Array();
 
 	@Override
 	public void create () {
@@ -60,20 +66,20 @@ public class LabelTest extends GdxTest {
 
 		Table table = new Table().debug();
 
-		table.add(new Label("This is regular text.", skin)).row();
-		table.add(new Label("This is regular text\nwith a newline.", skin)).row();
+		table.add(newLabel("This is regular text.", skin)).row();
+		table.add(newLabel("This is regular text\nwith a newline.", skin)).row();
 
-		label = new Label("This is [RED]regular text\n\nwith newlines,\naligned bottom, right.", skin);
+		label = newLabel("This is [RED]regular text\n\nwith newlines,\naligned bottom, right.", skin);
 		label.setColor(Color.GREEN);
 		label.setAlignment(Align.bottom | Align.right);
 		table.add(label).minWidth(200 * scale).minHeight(110 * scale).fill().row();
 
-		label = new Label("This is regular text with NO newlines, wrap enabled and aligned bottom, right.", skin);
+		label = newLabel("This is regular text with NO newlines, wrap enabled and aligned bottom, right.", skin);
 		label.setWrap(true);
 		label.setAlignment(Align.bottom | Align.right);
 		table.add(label).minWidth(200 * scale).minHeight(110 * scale).fill().row();
 
-		label = new Label("This is regular text with\n\nnewlines, wrap\nenabled and aligned bottom, right.", skin);
+		label = newLabel("This is regular text with\n\nnewlines, wrap\nenabled and aligned bottom, right.", skin);
 		label.setWrap(true);
 		label.setAlignment(Align.bottom | Align.right);
 		table.add(label).minWidth(200 * scale).minHeight(110 * scale).fill().row();
@@ -87,29 +93,51 @@ public class LabelTest extends GdxTest {
 		table = new Table().debug();
 		stage.addActor(table);
 
-		table.add(new Label("This is regular text.", skin)).minWidth(200 * scale).row();
+		List<Justify> list = new List(skin);
+		list.setItems(Justify.values());
+		list.addListener(new ChangeListener() {
+			@Override
+			public void changed (ChangeEvent event, Actor actor) {
+				Justify justify = list.getSelected();
+				if (justify == null) justify = Justify.None;
+				Object[] labelItems = labels.items;
+				for (int i = 0, n = labels.size; i < n; i++) {
+					Label label = (Label)labelItems[i];
+					label.setJustify(justify);
+				}
+			}
+		});
+		table.add(list).minWidth(200 * scale).align(Align.top).padBottom(34 * scale).row();
+
+		table.add(newLabel("This is regular text.", skin)).row();
 
 		// The color markup text should match the uncolored text exactly.
-		label = new Label("AAA BBB CCC DDD EEE", skin);
+		label = newLabel("AAA BBB CCC DDD EEE", skin);
 		table.add(label).align(Align.left).row();
 
-		label = new Label("AAA B[RED]B[]B CCC DDD EEE", skin);
+		label = newLabel("AAA B[RED]B[]B CCC DDD EEE", skin);
 		table.add(label).align(Align.left).row();
 
-		label = new Label("[RED]AAA [BLUE]BBB [RED]CCC [BLUE]DDD [RED]EEE", skin);
+		label = newLabel("[RED]AAA [BLUE]BBB [RED]CCC [BLUE]DDD [RED]EEE", skin);
 		table.add(label).align(Align.left).row();
 
-		label = new Label("AAA BBB CCC DDD EEE", skin);
+		label = newLabel("AAA BBB CCC DDD EEE", skin);
 		label.setWrap(true);
 		table.add(label).align(Align.left).width(150 * scale).row();
 
-		label = new Label("[RED]AAA [BLUE]BBB [RED]CCC [BLUE]DDD [RED]EEE", skin);
+		label = newLabel("[RED]AAA [BLUE]BBB [RED]CCC [BLUE]DDD [RED]EEE", skin);
 		label.setWrap(true);
 		table.add(label).align(Align.left).width(150 * scale).row();
 
 		table.setPosition(50 + 250 * scale, 40 + 25 * scale);
 		table.pack();
 		stage.addActor(table);
+	}
+
+	protected Label newLabel (CharSequence text, Skin skin) {
+		Label label = new Label(text, skin);
+		labels.add(label);
+		return label;
 	}
 
 	@Override
